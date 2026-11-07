@@ -17,6 +17,7 @@ using Terrarium.Core.Rendering;
 using Terrarium.Core.Storage;
 using Terrarium.Core.Updates;
 using WF = System.Windows.Forms;
+using ActivityKind = Terrarium.Core.Activity.ActivityKind; // System.Diagnostics has one too
 
 namespace Terrarium.App;
 
