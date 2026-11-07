@@ -82,22 +82,18 @@ internal sealed class ActivityMonitor
     }
 
     /// <summary>
-    /// True for games, videos and presentations taking a whole monitor. Maximized normal windows
-    /// (which have a caption) don't count, even on a monitor without a taskbar.
+    /// True for games, videos and presentations taking a whole monitor. Maximized windows never count.
     /// </summary>
     public static bool IsFullscreen(IntPtr hwnd)
     {
-        if (Native.SHQueryUserNotificationState(out int state) == 0 &&
-            state is Native.QUNS_RUNNING_D3D_FULL_SCREEN or Native.QUNS_PRESENTATION_MODE)
-            return true;
-
         if (hwnd == IntPtr.Zero || hwnd == Native.GetDesktopWindow() || hwnd == Native.GetShellWindow()) return false;
         string cls = Native.GetClassName(hwnd);
         if (cls is "Progman" or "WorkerW" or "Shell_TrayWnd" or "Shell_SecondaryTrayWnd") return false;
         if (!Native.IsWindowVisible(hwnd)) return false;
 
-        long style = Native.GetWindowLongPtr(hwnd, Native.GWL_STYLE).ToInt64();
-        if (Native.IsZoomed(hwnd) && (style & Native.WS_CAPTION) == Native.WS_CAPTION) return false;
+        // Maximized windows (including frameless apps like Discord or VS Code) are normal work, not fullscreen,
+        // even when they cover a monitor that has no taskbar.
+        if (Native.IsZoomed(hwnd)) return false;
 
         if (!Native.GetWindowRect(hwnd, out var r)) return false;
         IntPtr mon = Native.MonitorFromWindow(hwnd, Native.MONITOR_DEFAULTTONEAREST);

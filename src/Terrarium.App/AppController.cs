@@ -84,11 +84,6 @@ internal sealed class AppController : IDisposable
             HoverTextProvider = HoverText,
             Topmost = _settings.AlwaysOnTop,
         };
-        _widget.Loaded += (_, _) =>
-        {
-            _widget.RestorePosition(_settings.WindowLeft, _settings.WindowTop);
-            _widget.SetAlwaysOnTop(_settings.AlwaysOnTop);
-        };
         _widget.RightClicked += () => _tray.ShowMenuAtCursor();
         _widget.DoubleClicked += ShowSummary;
         _widget.ScaleRequested += SetScale;
@@ -100,7 +95,7 @@ internal sealed class AppController : IDisposable
         _tray.DoubleClicked += ShowSummary;
 
         RenderFrame();
-        if (_settings.WidgetVisible) _widget.Show();
+        if (_settings.WidgetVisible) ShowAndPlaceWidget();
 
         StartupManager.Apply(_settings.StartWithWindows);
         SystemEvents.PowerModeChanged += OnPowerModeChanged;
@@ -149,6 +144,9 @@ internal sealed class AppController : IDisposable
         if (hide != _fullscreenHidden)
         {
             _fullscreenHidden = hide;
+            AppPaths.Log(hide
+                ? $"Hiding for fullscreen app: {sample.ProcessName} \"{sample.Title}\""
+                : "Fullscreen app gone; showing terrarium");
             UpdateWidgetVisibility();
             if (hide) TrimMemory();
         }
@@ -191,14 +189,41 @@ internal sealed class AppController : IDisposable
         }
     }
 
+    private bool _placed;
+
+    /// <summary>Shows the widget; the first time, places it once it has its real size.</summary>
+    private void ShowAndPlaceWidget()
+    {
+        RenderFrame();
+        _widget.Show();
+        _widget.UpdateLayout();
+        if (!_placed)
+        {
+            _widget.RestorePosition(_settings.WindowLeft, _settings.WindowTop);
+            _placed = true;
+            var (x, y) = _widget.GetPhysicalPosition();
+            AppPaths.Log($"Terrarium {Updater.CurrentVersionText} shown at {x},{y} (scale {_settings.Scale}, DPI {System.Windows.Media.VisualTreeHelper.GetDpi(_widget).DpiScaleX:0.##})");
+        }
+        _widget.SetAlwaysOnTop(_settings.AlwaysOnTop);
+    }
+
+    private void ResetPosition()
+    {
+        _settings.WindowLeft = null;
+        _settings.WindowTop = null;
+        _settings.WidgetVisible = true;
+        _fullscreenHidden = false;
+        UpdateWidgetVisibility();
+        _widget.RestorePosition(null, null);
+        SavePosition();
+    }
+
     private void UpdateWidgetVisibility()
     {
         bool show = _settings.WidgetVisible && !_fullscreenHidden;
         if (show && !_widget.IsVisible)
         {
-            RenderFrame();
-            _widget.Show();
-            _widget.SetAlwaysOnTop(_settings.AlwaysOnTop);
+            ShowAndPlaceWidget();
         }
         else if (!show && _widget.IsVisible)
         {
@@ -255,6 +280,7 @@ internal sealed class AppController : IDisposable
         items.Add(new WF.ToolStripSeparator());
 
         items.Add(Item(_settings.WidgetVisible ? "Hide terrarium" : "Show terrarium", ToggleWidget));
+        items.Add(Item("Move to bottom-right corner", ResetPosition));
 
         var size = new WF.ToolStripMenuItem("Size");
         foreach (var (label, scale) in new[] { ("Small", 2), ("Medium", 3), ("Large", 4), ("Extra large", 6) })

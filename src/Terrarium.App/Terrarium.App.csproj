@@ -13,8 +13,8 @@
     <ApplicationManifest>app.manifest</ApplicationManifest>
     <EnableWindowsTargeting>true</EnableWindowsTargeting>
 
-    <!-- Footprint: no ICU data, English-only resources, workstation non-concurrent GC (no extra GC thread). -->
-    <InvariantGlobalization>true</InvariantGlobalization>
+    <!-- Footprint: English-only resources, workstation non-concurrent GC (no extra GC thread).
+         Note: InvariantGlobalization must stay OFF; WPF data bindings need culture data. -->
     <SatelliteResourceLanguages>en</SatelliteResourceLanguages>
     <ServerGarbageCollector>false</ServerGarbageCollector>
     <ConcurrentGarbageCollection>false</ConcurrentGarbageCollection>
