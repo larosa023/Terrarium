@@ -1,0 +1,12 @@
+<Solution>
+  <Folder Name="/src/">
+    <Project Path="src/Terrarium.App/Terrarium.App.csproj" />
+    <Project Path="src/Terrarium.Core/Terrarium.Core.csproj" />
+  </Folder>
+  <Folder Name="/tests/">
+    <Project Path="tests/Terrarium.Core.Tests/Terrarium.Core.Tests.csproj" />
+  </Folder>
+  <Folder Name="/tools/">
+    <Project Path="tools/Terrarium.Preview/Terrarium.Preview.csproj" />
+  </Folder>
+</Solution>

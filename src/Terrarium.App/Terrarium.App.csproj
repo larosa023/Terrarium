@@ -1,0 +1,37 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <OutputType>WinExe</OutputType>
+    <TargetFramework>net10.0-windows</TargetFramework>
+    <UseWPF>true</UseWPF>
+    <!-- WinForms is used only for the tray icon (NotifyIcon) and multi-monitor work areas. -->
+    <UseWindowsForms>true</UseWindowsForms>
+    <!-- Explicit usings avoid WPF/WinForms type-name clashes (Application, MessageBox, ...). -->
+    <ImplicitUsings>disable</ImplicitUsings>
+    <AssemblyName>Terrarium</AssemblyName>
+    <RootNamespace>Terrarium.App</RootNamespace>
+    <ApplicationIcon>Assets\terrarium.ico</ApplicationIcon>
+    <ApplicationManifest>app.manifest</ApplicationManifest>
+    <EnableWindowsTargeting>true</EnableWindowsTargeting>
+
+    <!-- Footprint: no ICU data, English-only resources, workstation non-concurrent GC (no extra GC thread). -->
+    <InvariantGlobalization>true</InvariantGlobalization>
+    <SatelliteResourceLanguages>en</SatelliteResourceLanguages>
+    <ServerGarbageCollector>false</ServerGarbageCollector>
+    <ConcurrentGarbageCollection>false</ConcurrentGarbageCollection>
+    <TieredPGO>true</TieredPGO>
+  </PropertyGroup>
+
+  <!-- Release publish (CI): one self-contained Terrarium.exe; users don't need .NET installed. -->
+  <PropertyGroup Condition="'$(Configuration)' == 'Release'">
+    <RuntimeIdentifier>win-x64</RuntimeIdentifier>
+    <SelfContained>true</SelfContained>
+    <PublishSingleFile>true</PublishSingleFile>
+    <IncludeNativeLibrariesForSelfExtract>true</IncludeNativeLibrariesForSelfExtract>
+    <EnableCompressionInSingleFile>true</EnableCompressionInSingleFile>
+    <DebugType>none</DebugType>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Terrarium.Core\Terrarium.Core.csproj" />
+  </ItemGroup>
+</Project>

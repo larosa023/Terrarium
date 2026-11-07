@@ -1,0 +1,30 @@
+name: Build
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '10.0.x'
+
+      - name: Test core
+        run: dotnet run --project tests/Terrarium.Core.Tests -c Release
+
+      - name: Publish Terrarium.exe
+        run: dotnet publish src/Terrarium.App/Terrarium.App.csproj -c Release -o out
+
+      - name: Upload dev build
+        uses: actions/upload-artifact@v4
+        with:
+          name: Terrarium-dev-${{ github.sha }}
+          path: out/Terrarium.exe
+          retention-days: 14

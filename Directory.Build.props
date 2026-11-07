@@ -1,0 +1,12 @@
+<Project>
+  <PropertyGroup>
+    <!-- Single source of truth for the app version. CI overrides it from the git tag (v1.2.3 -> 1.2.3). -->
+    <Version>0.1.0</Version>
+    <LangVersion>latest</LangVersion>
+    <Nullable>enable</Nullable>
+    <Authors>Anthony LaRosa</Authors>
+    <Product>Terrarium</Product>
+    <Copyright>© 2026 Anthony LaRosa</Copyright>
+    <Deterministic>true</Deterministic>
+  </PropertyGroup>
+</Project>

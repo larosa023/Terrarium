@@ -1,0 +1,10 @@
+bin/
+obj/
+out/
+dist/
+preview/
+.vs/
+.idea/
+*.user
+*.suo
+*.swp
