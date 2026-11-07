@@ -304,7 +304,7 @@ internal sealed class AppController : IDisposable
 
     private WF.ToolStripMenuItem BuildGardenMenu()
     {
-        double hours = _garden.LifetimeFocusHours;
+        double hours = _engine.UnlockHours;
         var garden = new WF.ToolStripMenuItem("Garden");
 
         for (int i = 0; i < Catalog.SlotCount; i++)
@@ -499,6 +499,7 @@ internal sealed class AppController : IDisposable
         _settings.Mode = edited.Mode;
         _settings.Normalize();
         ApplyMode();
+        RenderFrame();
 
         _classifier = new ActivityClassifier(_settings.Rules);
         _engine.GraceSeconds = _settings.GraceMinutes * 60.0;
@@ -518,6 +519,8 @@ internal sealed class AppController : IDisposable
         bool cozy = _settings.Mode == GardenMode.Cozy;
         Words.Cozy = cozy;
         _engine.GrowthRate = cozy ? 0.5 : 1.0;
+        _engine.UnlockEverything = cozy;
+        if (cozy && _engine.UnlockAllNow()) SaveGarden(); // every pot gets a seed, decorations switch on once
         if (cozy)
         {
             // Leaving focus mode: let any droopy plants recover instead of staying sad forever.

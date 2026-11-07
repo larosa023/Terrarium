@@ -28,6 +28,15 @@ public sealed class GardenEngine
     public double GrowthRate { get; set; } = 1.0;
 
     public GardenState State { get; }
+
+    /// <summary>
+    /// Cozy mode: every plant, pot, slot and decoration is available from the start, no unlocking.
+    /// Set it, then call <see cref="UnlockAllNow"/> to open slots and switch decorations on once.
+    /// </summary>
+    public bool UnlockEverything { get; set; }
+
+    /// <summary>Hours used for availability checks: infinite when everything is unlocked.</summary>
+    public double UnlockHours => UnlockEverything ? double.PositiveInfinity : State.LifetimeFocusHours;
     public double GraceSeconds { get; set; }
 
     private readonly Random _rng;
@@ -41,7 +50,7 @@ public sealed class GardenEngine
 
         // Items available from the start (or already earned) shouldn't be announced as new.
         foreach (var item in Catalog.All)
-            if (Catalog.IsUnlocked(item, State.LifetimeFocusHours) && !State.AnnouncedUnlocks.Contains(item.Id))
+            if (Catalog.IsUnlocked(item, UnlockHours) && !State.AnnouncedUnlocks.Contains(item.Id))
                 State.AnnouncedUnlocks.Add(item.Id);
         EnsureSlotsPlanted(null);
     }
@@ -143,7 +152,7 @@ public sealed class GardenEngine
 
     private void CheckUnlocks(double hoursBefore, List<GardenEvent> events)
     {
-        double now = State.LifetimeFocusHours;
+        double now = UnlockHours;
         foreach (var item in Catalog.All)
         {
             if (State.AnnouncedUnlocks.Contains(item.Id)) continue;
@@ -171,10 +180,33 @@ public sealed class GardenEngine
         }
     }
 
+    /// <summary>
+    /// Makes everything available without fanfare: fills every pot with a seed and turns each decoration on
+    /// the first time it becomes available (later toggles are respected). Returns true if anything changed.
+    /// </summary>
+    public bool UnlockAllNow()
+    {
+        bool changed = false;
+        foreach (var item in Catalog.All)
+        {
+            if (State.AnnouncedUnlocks.Contains(item.Id)) continue;
+            State.AnnouncedUnlocks.Add(item.Id);
+            if (item.Kind == UnlockKind.Decoration && !State.Decorations.Contains(item.Id)) State.Decorations.Add(item.Id);
+            changed = true;
+        }
+        for (int i = 0; i < Catalog.SlotCount; i++)
+        {
+            if (State.Slots[i] is not null) continue;
+            PlantSlot(i, null);
+            changed = true;
+        }
+        return changed;
+    }
+
     private void EnsureSlotsPlanted(List<GardenEvent>? events)
     {
         for (int i = 0; i < Catalog.SlotCount; i++)
-            if (State.Slots[i] is null && Catalog.IsUnlocked(Catalog.All.First(x => x.Id == $"slot{i}"), State.LifetimeFocusHours))
+            if (State.Slots[i] is null && Catalog.IsUnlocked(Catalog.All.First(x => x.Id == $"slot{i}"), UnlockHours))
                 PlantSlot(i, null);
     }
 
@@ -184,7 +216,7 @@ public sealed class GardenEngine
         if (slot < 0 || slot >= Catalog.SlotCount) throw new ArgumentOutOfRangeException(nameof(slot));
         if (speciesId is null)
         {
-            var unlocked = Catalog.Species.Where(s => Catalog.IsUnlocked(s, State.LifetimeFocusHours)).ToList();
+            var unlocked = Catalog.Species.Where(s => Catalog.IsUnlocked(s, UnlockHours)).ToList();
             var fresh = unlocked.Where(s => State.Slots.All(p => p?.SpeciesId != s.Id)).ToList();
             var pool = fresh.Count > 0 ? fresh : unlocked;
             speciesId = pool[_rng.Next(pool.Count)].Id;
@@ -194,5 +226,5 @@ public sealed class GardenEngine
         return plant;
     }
 
-    public bool IsSlotOpen(int slot) => Catalog.IsUnlocked(Catalog.All.First(x => x.Id == $"slot{slot}"), State.LifetimeFocusHours);
+    public bool IsSlotOpen(int slot) => Catalog.IsUnlocked(Catalog.All.First(x => x.Id == $"slot{slot}"), UnlockHours);
 }

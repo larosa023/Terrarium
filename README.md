@@ -16,7 +16,7 @@ A fern seed appears above your taskbar. Drag it anywhere; it snaps to screen edg
 
 ## How it works
 
-**Cozy mode (default):** any time you're actively at your PC counts as growing time. Plants grow at half speed so they still take days, and they never wilt. Away, locked, or asleep doesn't count.
+**Cozy mode (default):** any time you're actively at your PC counts as growing time. Plants grow at half speed so they still take days, and they never wilt. Away, locked, or asleep doesn't count. Everything is available from the start: all three pots, every plant, pot style and decoration. Nothing to unlock.
 
 **Focus mode** (Settings → General):
 
@@ -31,7 +31,7 @@ A fern seed appears above your taskbar. Drag it anywhere; it snaps to screen edg
 - **Rules:** *App name is* matches the executable (`EXCEL`, `Code`). *Window title has* matches any window title, so it catches websites in every browser. Title rules win over app rules, so `chrome` stays neutral while `… - YouTube - Google Chrome` is a distraction. Settings → *Apps & sites* lists the apps you've recently used so you can mark them in one click.
 - **Wilting** takes about 90 minutes of continuous distraction to bottom out; about 30 minutes of focus brings a plant fully back. Droopy plants grow at 40–100% speed depending on health.
 - **Growth stages** (hours per plant in Focus mode; double in Cozy mode): Seed → Sprout (20 min) → Young (1.5 h) → Leafy (4 h) → Mature (9 h) → Blooming (16 h). At a few hours of focus a day, that's days to weeks.
-- **Unlocks** (total growing hours):
+- **Unlocks** (Focus mode only, total focused hours):
   - Plants: Fern (start), Succulent 2 h, Cactus 6 h, Daisy 12 h, Bonsai 25 h
   - Extra pots: second at 3 h, third at 10 h (each starts with a new seed)
   - Pot styles: Terracotta, Sage 4 h, Indigo 15 h, Gilded 40 h

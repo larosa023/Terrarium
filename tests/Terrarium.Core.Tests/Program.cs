@@ -124,6 +124,18 @@ Test("settings default to cozy mode, including older files without a mode", () =
     var old = System.Text.Json.JsonSerializer.Deserialize<Settings>("{\"idleMinutes\":3}", JsonStore.Options)!;
     Check(old.Mode == GardenMode.Cozy, "missing field");
 });
+Test("unlock-everything fills pots, enables decor once, and stays quiet", () =>
+{
+    var e = new GardenEngine(GardenState.CreateNew(1), 180, 1) { UnlockEverything = true };
+    Check(e.UnlockAllNow(), "changed");
+    Check(e.State.Slots.All(p => p is not null), "all pots planted");
+    Check(e.State.Slots.Select(p => p!.SpeciesId).Distinct().Count() == 3, "three different plants");
+    Check(e.State.Decorations.Count == Catalog.Decorations.Length, "decor on");
+    e.State.Decorations.Remove("snail");
+    Check(!e.UnlockAllNow() && !e.State.Decorations.Contains("snail"), "toggle respected");
+    Check(Run(e, 4 * 3600, ActivityKind.Focus).All(x => x.Kind == GardenEventKind.StageUp), "no unlock notices");
+    Check(Catalog.NextUnlock(e.UnlockHours) is null, "nothing left to unlock");
+});
 Test("wilted plants grow slower", () =>
 {
     Check(GardenEngine.GrowthMultiplier(0.1) < GardenEngine.GrowthMultiplier(1), "multiplier");

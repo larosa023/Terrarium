@@ -64,6 +64,8 @@ public partial class SummaryWindow : Window
         double hours = s.LifetimeFocusHours;
         Lifetime.Text = $"{Stats.FormatDuration(s.LifetimeFocusSeconds)} {(Words.Cozy ? "of growing" : "focused")} since {s.CreatedUtc.ToLocalTime():MMMM d, yyyy}.";
 
+        // Cozy mode has nothing to unlock, so the progress row is hidden.
+        NextUnlockText.Visibility = NextUnlockBar.Visibility = Words.Cozy ? Visibility.Collapsed : Visibility.Visible;
         var nextUnlock = Catalog.NextUnlock(hours);
         if (nextUnlock is null)
         {
