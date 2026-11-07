@@ -49,13 +49,18 @@ jobs:
           Set-Content -Path out/Terrarium.exe.sha256 -Value "$hash  Terrarium.exe" -Encoding ascii -NoNewline
           Get-Content out/Terrarium.exe.sha256
 
-      - name: Create GitHub release
+      - name: Publish to GitHub release
         shell: pwsh
         env:
           GH_TOKEN: ${{ github.token }}
-        run: >
-          gh release create "${{ steps.ver.outputs.tag }}"
-          out/Terrarium.exe out/Terrarium.exe.sha256
-          --target "${{ github.sha }}"
-          --title "Terrarium ${{ steps.ver.outputs.version }}"
-          --generate-notes
+        run: |
+          $tag = "${{ steps.ver.outputs.tag }}"
+          $files = @('out/Terrarium.exe', 'out/Terrarium.exe.sha256')
+          gh release view $tag *> $null
+          if ($LASTEXITCODE -eq 0) {
+            # Release already exists (e.g. made on the Releases page): attach or replace the build.
+            gh release upload $tag @files --clobber
+          } else {
+            gh release create $tag @files --target "${{ github.sha }}" --title "Terrarium ${{ steps.ver.outputs.version }}" --generate-notes
+          }
+          if ($LASTEXITCODE -ne 0) { throw "Publishing the release failed." }
