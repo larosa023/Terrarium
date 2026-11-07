@@ -107,8 +107,8 @@ dotnet run --project tools/Terrarium.Preview -- preview --icon src/Terrarium.App
 ### Releasing
 
 1. Bump `<Version>` in `Directory.Build.props` (optional; CI uses the version you release).
-2. Either go to **Actions → Release → Run workflow** and enter a version like `0.2.0`, or push a tag: `git tag v0.2.0 && git push origin v0.2.0`.
-3. The Release workflow tests, builds a self-contained single-file `Terrarium.exe`, writes `Terrarium.exe.sha256`, creates the `v0.2.0` tag if needed, and publishes the GitHub Release. Installed copies pick it up within a day.
+2. Either publish a release on the **Releases** page with any tag (`0.3.0` or `v0.3.0`), or go to **Actions → Release → Run workflow** and enter a version.
+3. The Release workflow tests, builds a self-contained single-file `Terrarium.exe`, writes `Terrarium.exe.sha256`, and attaches both to the release (creating it if needed). Installed copies pick it up within a day.
 
 Tip: to try the updater, install a release, then push a higher tag.
 
