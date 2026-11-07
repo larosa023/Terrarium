@@ -19,6 +19,16 @@
             <TabItem Header="General">
                 <ScrollViewer VerticalScrollBarVisibility="Auto">
                     <StackPanel Margin="16,4,16,16">
+                        <TextBlock Style="{StaticResource SectionTitle}" Text="How your garden grows" />
+                        <RadioButton x:Name="CozyModeRadio" GroupName="Mode" Margin="0,5" FontWeight="SemiBold"
+                                     Content="Cozy (recommended)" />
+                        <TextBlock Style="{StaticResource Hint}" Margin="22,0,0,6"
+                                   Text="It grows a little whenever you're at your computer, whatever you're doing. It never wilts." />
+                        <RadioButton x:Name="FocusModeRadio" GroupName="Mode" Margin="0,5" FontWeight="SemiBold"
+                                     Content="Focus" />
+                        <TextBlock Style="{StaticResource Hint}" Margin="22,0,0,6"
+                                   Text="It grows only in your work apps and droops after long stretches on distractions. Pick the apps on the Apps &amp; sites tab." />
+
                         <TextBlock Style="{StaticResource SectionTitle}" Text="The terrarium" />
                         <CheckBox x:Name="AlwaysOnTopBox" Content="Keep it above other windows (and the taskbar)" />
                         <CheckBox x:Name="HideFullscreenBox" Content="Hide it while a game, video or presentation is fullscreen" />
@@ -54,11 +64,11 @@
                             <TextBlock Grid.Row="2" Grid.Column="2" Margin="10,0,0,0" VerticalAlignment="Center"
                                        Text="{Binding Value, ElementName=GraceSlider, StringFormat='{}{0:0} min'}" />
                             <TextBlock Grid.Row="3" Grid.ColumnSpan="3" Style="{StaticResource Hint}"
-                                       Text="A quick peek at a distraction is fine. Plants only start drooping after this much continuous distraction, and recover when you get back to work." />
+                                       Text="Focus mode only. A quick peek at a distraction is fine. Plants only start drooping after this much continuous distraction, and recover when you get back to work." />
                         </Grid>
 
                         <TextBlock Style="{StaticResource SectionTitle}" Text="Recaps" />
-                        <CheckBox x:Name="DailyRecapBox" Content="Show a daily recap of my focused time" />
+                        <CheckBox x:Name="DailyRecapBox" Content="Show a daily recap" />
                         <CheckBox x:Name="WeeklyRecapBox" Content="Show a weekly recap on Fridays" />
                         <StackPanel Orientation="Horizontal" Margin="22,6,0,0">
                             <TextBlock Text="Show recaps at" VerticalAlignment="Center" Margin="0,0,8,0" />
@@ -83,6 +93,7 @@
                     </Grid.ColumnDefinitions>
 
                     <TextBlock Grid.ColumnSpan="3" Style="{StaticResource Hint}" FontSize="12.5">
+                        <Run FontWeight="SemiBold">Only used in Focus mode.</Run>
                         Pick what counts as <Run FontWeight="SemiBold" Foreground="{StaticResource Leaf}">focus</Run> and what counts as a
                         <Run FontWeight="SemiBold" Foreground="{StaticResource Clay}">distraction</Run>. Anything else is neutral.
                         Window-title rules catch websites in any browser (e.g. "YouTube") and take priority over app rules.

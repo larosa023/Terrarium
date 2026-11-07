@@ -33,6 +33,8 @@ public partial class SettingsWindow : Window
         InitializeComponent();
         _settings = editableCopy;
 
+        CozyModeRadio.IsChecked = _settings.Mode == GardenMode.Cozy;
+        FocusModeRadio.IsChecked = _settings.Mode == GardenMode.Focus;
         AlwaysOnTopBox.IsChecked = _settings.AlwaysOnTop;
         HideFullscreenBox.IsChecked = _settings.HideWhenFullscreen;
         StartWithWindowsBox.IsChecked = _settings.StartWithWindows;
@@ -55,6 +57,7 @@ public partial class SettingsWindow : Window
 
     private void OnSave(object sender, RoutedEventArgs e)
     {
+        _settings.Mode = FocusModeRadio.IsChecked == true ? GardenMode.Focus : GardenMode.Cozy;
         _settings.AlwaysOnTop = AlwaysOnTopBox.IsChecked == true;
         _settings.HideWhenFullscreen = HideFullscreenBox.IsChecked == true;
         _settings.StartWithWindows = StartWithWindowsBox.IsChecked == true;

@@ -28,10 +28,12 @@ public partial class SummaryWindow : Window
         var now = DateTime.Now;
         var today = Stats.ForDay(s, now);
 
-        TodayFocus.Text = Stats.FormatDuration(today.FocusSeconds) + " focused";
-        TodayDetail.Text = today.DistractionSeconds >= 60
-            ? $"{Stats.FormatDuration(today.DistractionSeconds)} on distractions"
-            : "No distractions logged. Nice.";
+        TodayFocus.Text = Words.Headline(Stats.FormatDuration(today.FocusSeconds));
+        TodayDetail.Text = Words.Cozy
+            ? "Your garden grows whenever you're at your computer."
+            : today.DistractionSeconds >= 60
+                ? $"{Stats.FormatDuration(today.DistractionSeconds)} on distractions"
+                : "No distractions logged. Nice.";
 
         var week = Stats.LastDays(s, now, 7);
         WeekTotal.Text = $"{Stats.FormatDuration(week.Sum(d => d.FocusSeconds))} total";
@@ -44,7 +46,7 @@ public partial class SummaryWindow : Window
             string line;
             if (p is null)
             {
-                line = $"Pot {i + 1}: opens at {Catalog.SlotHours[i]:0.#}h of focus";
+                line = $"Pot {i + 1}: opens at {Catalog.SlotHours[i]:0.#}h of {Words.TimeUnit}";
             }
             else
             {
@@ -60,7 +62,7 @@ public partial class SummaryWindow : Window
         }
 
         double hours = s.LifetimeFocusHours;
-        Lifetime.Text = $"{Stats.FormatDuration(s.LifetimeFocusSeconds)} focused since {s.CreatedUtc.ToLocalTime():MMMM d, yyyy}.";
+        Lifetime.Text = $"{Stats.FormatDuration(s.LifetimeFocusSeconds)} {(Words.Cozy ? "of growing" : "focused")} since {s.CreatedUtc.ToLocalTime():MMMM d, yyyy}.";
 
         var nextUnlock = Catalog.NextUnlock(hours);
         if (nextUnlock is null)
@@ -71,7 +73,7 @@ public partial class SummaryWindow : Window
         else
         {
             var prev = Catalog.All.Where(x => x.Hours <= hours).Select(x => x.Hours).DefaultIfEmpty(0).Max();
-            NextUnlockText.Text = $"Next unlock: {nextUnlock.Name}, in {Stats.FormatDuration((nextUnlock.Hours - hours) * 3600)} of focus";
+            NextUnlockText.Text = $"Next unlock: {nextUnlock.Name}, in {Stats.FormatDuration((nextUnlock.Hours - hours) * 3600)} of {Words.TimeUnit}";
             NextUnlockBar.Value = nextUnlock.Hours > prev ? (hours - prev) / (nextUnlock.Hours - prev) : 0;
         }
     }
@@ -127,7 +129,9 @@ public partial class SummaryWindow : Window
                 HorizontalAlignment = HorizontalAlignment.Center,
                 Margin = new Thickness(0, 4, 0, 0),
             });
-            col.ToolTip = $"{d.Date:dddd, MMM d}\n{Stats.FormatDuration(d.FocusSeconds)} focused\n{Stats.FormatDuration(d.DistractionSeconds)} distracted";
+            col.ToolTip = Words.Cozy
+                ? $"{d.Date:dddd, MMM d}\n{Stats.FormatDuration(d.FocusSeconds)} of growing"
+                : $"{d.Date:dddd, MMM d}\n{Stats.FormatDuration(d.FocusSeconds)} focused\n{Stats.FormatDuration(d.DistractionSeconds)} distracted";
             Grid.SetColumn(col, i);
             WeekBars.Children.Add(col);
         }

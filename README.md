@@ -1,6 +1,8 @@
 # Terrarium
 
-A tiny glass terrarium that lives in the corner of your Windows desktop. The plants grow while you're doing focused work and slowly droop if you spend too long on distractions. It's a cozy, ambient nudge, not a blocker: nothing is ever closed or locked, and the plants never die.
+A tiny glass terrarium that lives in the corner of your Windows desktop. Its plants grow a little whenever you're at your computer, unlocking new plants, pots and decorations over days and weeks. There's nothing to manage: it's just a cute thing that keeps you company.
+
+Prefer a gentle productivity nudge? Switch to **Focus mode** in Settings, and the garden grows only in your work apps and droops after long stretches on distractions.
 
 ![A grown terrarium through the day](docs/day-cycle.png)
 
@@ -14,6 +16,10 @@ A fern seed appears above your taskbar. Drag it anywhere; it snaps to screen edg
 
 ## How it works
 
+**Cozy mode (default):** any time you're actively at your PC counts as growing time. Plants grow at half speed so they still take days, and they never wilt. Away, locked, or asleep doesn't count.
+
+**Focus mode** (Settings → General):
+
 | You're… | What happens |
 |---|---|
 | In a **focus** app (VS Code, Excel, Bluebeam, PlanSwift, Gridline…) | Plants grow and recover |
@@ -24,8 +30,8 @@ A fern seed appears above your taskbar. Drag it anywhere; it snaps to screen edg
 
 - **Rules:** *App name is* matches the executable (`EXCEL`, `Code`). *Window title has* matches any window title, so it catches websites in every browser. Title rules win over app rules, so `chrome` stays neutral while `… - YouTube - Google Chrome` is a distraction. Settings → *Apps & sites* lists the apps you've recently used so you can mark them in one click.
 - **Wilting** takes about 90 minutes of continuous distraction to bottom out; about 30 minutes of focus brings a plant fully back. Droopy plants grow at 40–100% speed depending on health.
-- **Growth stages** (focused hours per plant): Seed → Sprout (20 min) → Young (1.5 h) → Leafy (4 h) → Mature (9 h) → Blooming (16 h). At a few hours of focus a day, that's days to weeks.
-- **Unlocks** (lifetime focused hours):
+- **Growth stages** (hours per plant in Focus mode; double in Cozy mode): Seed → Sprout (20 min) → Young (1.5 h) → Leafy (4 h) → Mature (9 h) → Blooming (16 h). At a few hours of focus a day, that's days to weeks.
+- **Unlocks** (total growing hours):
   - Plants: Fern (start), Succulent 2 h, Cactus 6 h, Daisy 12 h, Bonsai 25 h
   - Extra pots: second at 3 h, third at 10 h (each starts with a new seed)
   - Pot styles: Terracotta, Sage 4 h, Indigo 15 h, Gilded 40 h

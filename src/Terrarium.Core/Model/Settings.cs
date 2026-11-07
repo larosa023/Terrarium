@@ -10,6 +10,14 @@ public enum MatchTarget
     Title,
 }
 
+public enum GardenMode
+{
+    /// <summary>Grows whenever you're at your computer, whatever you're doing. Never wilts.</summary>
+    Cozy,
+    /// <summary>Grows with focus apps, droops during long distractions.</summary>
+    Focus,
+}
+
 public sealed class AppRule
 {
     public MatchTarget Target { get; set; }
@@ -30,6 +38,8 @@ public sealed class AppRule
 public sealed class Settings
 {
     public int SchemaVersion { get; set; } = 1;
+
+    public GardenMode Mode { get; set; } = GardenMode.Cozy;
 
     public List<AppRule> Rules { get; set; } = DefaultRules();
 

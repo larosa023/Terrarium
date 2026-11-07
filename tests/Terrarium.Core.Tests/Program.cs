@@ -111,6 +111,19 @@ Test("focus recovers health and announces recovery", () =>
     Check(e.State.Slots[0]!.Health >= 0.99, "recovered");
     Check(ev.Any(x => x.Kind == GardenEventKind.Recovered), "recovered event");
 });
+Test("growth rate slows plants but not unlock progress (cozy mode)", () =>
+{
+    var e = new GardenEngine(GardenState.CreateNew(1), 180, 1) { GrowthRate = 0.5 };
+    Run(e, 3600, ActivityKind.Focus);
+    Near(e.State.Slots[0]!.GrowthSeconds, 1800, 1, "half growth");
+    Near(e.State.LifetimeFocusSeconds, 3600, 1, "full unlock progress");
+});
+Test("settings default to cozy mode, including older files without a mode", () =>
+{
+    Check(new Settings().Mode == GardenMode.Cozy, "default");
+    var old = System.Text.Json.JsonSerializer.Deserialize<Settings>("{\"idleMinutes\":3}", JsonStore.Options)!;
+    Check(old.Mode == GardenMode.Cozy, "missing field");
+});
 Test("wilted plants grow slower", () =>
 {
     Check(GardenEngine.GrowthMultiplier(0.1) < GardenEngine.GrowthMultiplier(1), "multiplier");

@@ -24,6 +24,9 @@ public sealed class GardenEngine
     public const double WiltNoticeThreshold = 0.6;
     public const double RecoveredThreshold = 0.9;
 
+    /// <summary>Multiplier on plant growth (not on unlock progress). Cozy mode uses 0.5 so plants still take days.</summary>
+    public double GrowthRate { get; set; } = 1.0;
+
     public GardenState State { get; }
     public double GraceSeconds { get; set; }
 
@@ -84,7 +87,7 @@ public sealed class GardenEngine
         {
             if (p is null) continue;
             int stageBefore = Catalog.StageFor(p.GrowthHours);
-            p.GrowthSeconds += seconds * GrowthMultiplier(p.Health);
+            p.GrowthSeconds += seconds * GrowthRate * GrowthMultiplier(p.Health);
             p.Health = Math.Min(1.0, p.Health + heal);
             int stageAfter = Catalog.StageFor(p.GrowthHours);
             if (stageAfter > stageBefore)

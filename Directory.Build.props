@@ -1,7 +1,7 @@
 <Project>
   <PropertyGroup>
     <!-- Single source of truth for the app version. CI overrides it from the git tag (v1.2.3 -> 1.2.3). -->
-    <Version>0.1.1</Version>
+    <Version>0.2.0</Version>
     <LangVersion>latest</LangVersion>
     <Nullable>enable</Nullable>
     <Authors>Anthony LaRosa</Authors>

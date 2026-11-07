@@ -70,6 +70,7 @@ internal sealed class AppController : IDisposable
         _garden = JsonStore.Load(AppPaths.GardenFile, () => GardenState.CreateNew(Environment.TickCount));
         _engine = new GardenEngine(_garden, _settings.GraceMinutes * 60.0);
         _classifier = new ActivityClassifier(_settings.Rules);
+        ApplyMode();
 
         _activityTimer = new DispatcherTimer(DispatcherPriority.Background) { Interval = TimeSpan.FromSeconds(1) };
         _activityTimer.Tick += (_, _) => SafeRun(OnActivityTick);
@@ -111,7 +112,7 @@ internal sealed class AppController : IDisposable
             _tray.Notify("Terrarium updated", $"You're now on version {Updater.CurrentVersionText}. Your garden came along.");
         else if (_firstRun)
             _tray.Notify("Your terrarium is planted",
-                "Focused work helps it grow. Drag it anywhere; right-click it (or this tray icon) to pick which apps count.",
+                "It grows a little whenever you're at your computer. Drag it anywhere; right-click it for the garden menu.",
                 ShowSettings);
     }
 
@@ -128,6 +129,7 @@ internal sealed class AppController : IDisposable
         bool idle = _locked || sample.IdleSeconds >= _settings.IdleMinutes * 60.0;
         ActivityKind kind = _paused ? ActivityKind.Paused
             : idle ? ActivityKind.Idle
+            : _settings.Mode == GardenMode.Cozy ? ActivityKind.Focus // cozy: any time at the PC grows the garden
             : _classifier.Classify(sample.ProcessName, sample.Title);
         if (kind is not (ActivityKind.Paused or ActivityKind.Idle)) _monitor.Record(sample, dt);
         _kind = kind;
@@ -244,6 +246,7 @@ internal sealed class AppController : IDisposable
         ActivityKind.Paused => "Tracking paused",
         ActivityKind.Idle => "Resting while you're away",
         ActivityKind.Focus => "Growing",
+        _ when _settings.Mode == GardenMode.Cozy => "Growing",
         ActivityKind.Distraction => _engine.IsWilting ? "Wilting. Back to work?" : "Distracted",
         _ => "Waiting for focus",
     };
@@ -251,14 +254,14 @@ internal sealed class AppController : IDisposable
     private string HoverText()
     {
         var today = Stats.ForDay(_garden, DateTime.Now);
-        return $"{Stats.FormatDuration(today.FocusSeconds)} focused today\n{StatusText()}";
+        return $"{Words.Today(Stats.FormatDuration(today.FocusSeconds))}\n{StatusText()}";
     }
 
     private void UpdateTooltip()
     {
         if (_installing) return;
         var today = Stats.ForDay(_garden, DateTime.Now);
-        _tray.SetTooltip($"Terrarium · {Stats.FormatDuration(today.FocusSeconds)} focused today · {StatusText()}");
+        _tray.SetTooltip($"Terrarium · {Words.Today(Stats.FormatDuration(today.FocusSeconds))} · {StatusText()}");
     }
 
     // ───────────────────────────── tray menu ─────────────────────────────
@@ -268,7 +271,7 @@ internal sealed class AppController : IDisposable
         var items = _tray.Items;
         items.Clear();
         var today = Stats.ForDay(_garden, DateTime.Now);
-        items.Add(new WF.ToolStripMenuItem($"{Stats.FormatDuration(today.FocusSeconds)} focused today · {StatusText()}") { Enabled = false });
+        items.Add(new WF.ToolStripMenuItem($"{Words.Today(Stats.FormatDuration(today.FocusSeconds))} · {StatusText()}") { Enabled = false });
 
         if (_availableUpdate is ReleaseInfo r)
         {
@@ -310,7 +313,7 @@ internal sealed class AppController : IDisposable
             var p = _garden.Slots[i];
             if (p is null)
             {
-                garden.DropDownItems.Add(new WF.ToolStripMenuItem($"Pot {i + 1}: unlocks at {Catalog.SlotHours[i]:0.#}h of focus") { Enabled = false });
+                garden.DropDownItems.Add(new WF.ToolStripMenuItem($"Pot {i + 1}: unlocks at {Catalog.SlotHours[i]:0.#}h of {Words.TimeUnit}") { Enabled = false });
                 continue;
             }
             var sp = Catalog.SpeciesOf(p.SpeciesId);
@@ -357,7 +360,7 @@ internal sealed class AppController : IDisposable
         var next = Catalog.NextUnlock(hours);
         if (next is not null)
             garden.DropDownItems.Add(new WF.ToolStripMenuItem(
-                $"Next: {next.Name} in {Stats.FormatDuration((next.Hours - hours) * 3600)} of focus") { Enabled = false });
+                $"Next: {next.Name} in {Stats.FormatDuration((next.Hours - hours) * 3600)} of {Words.TimeUnit}") { Enabled = false });
         return garden;
     }
 
@@ -426,7 +429,7 @@ internal sealed class AppController : IDisposable
             var from = Catalog.SpeciesOf(current.SpeciesId).Name.ToLowerInvariant();
             var to = Catalog.SpeciesOf(speciesId).Name.ToLowerInvariant();
             var answer = MessageBox.Show(
-                $"Replant pot {slot + 1} with a {to}?\n\nThe {from} goes to the compost and the new seed starts from scratch. Your focus history and unlocks are kept.",
+                $"Replant pot {slot + 1} with a {to}?\n\nThe {from} goes to the compost and the new seed starts from scratch. Your history and unlocks are kept.",
                 "Replant", MessageBoxButton.OKCancel, MessageBoxImage.Question);
             if (answer != MessageBoxResult.OK) return;
         }
@@ -493,7 +496,9 @@ internal sealed class AppController : IDisposable
         _settings.DailyRecap = edited.DailyRecap;
         _settings.WeeklyRecap = edited.WeeklyRecap;
         _settings.RecapHour = edited.RecapHour;
+        _settings.Mode = edited.Mode;
         _settings.Normalize();
+        ApplyMode();
 
         _classifier = new ActivityClassifier(_settings.Rules);
         _engine.GraceSeconds = _settings.GraceMinutes * 60.0;
@@ -507,14 +512,30 @@ internal sealed class AppController : IDisposable
         SaveSettings();
     }
 
+    /// <summary>Cozy: grows with any time at the PC at half speed and never wilts. Focus: the original rules.</summary>
+    private void ApplyMode()
+    {
+        bool cozy = _settings.Mode == GardenMode.Cozy;
+        Words.Cozy = cozy;
+        _engine.GrowthRate = cozy ? 0.5 : 1.0;
+        if (cozy)
+        {
+            // Leaving focus mode: let any droopy plants recover instead of staying sad forever.
+            _garden.DistractionStreakSeconds = 0;
+            _garden.WiltNoticeShown = false;
+            foreach (var p in _garden.Slots) if (p is not null) p.Health = 1.0;
+        }
+    }
+
     private void ResetGarden()
     {
         var answer = MessageBox.Show(
-            "Start a brand-new garden?\n\nAll plants, unlocks and focus history will be erased. This can't be undone.",
+            "Start a brand-new garden?\n\nAll plants, unlocks and history will be erased. This can't be undone.",
             "Reset garden", MessageBoxButton.OKCancel, MessageBoxImage.Warning, MessageBoxResult.Cancel);
         if (answer != MessageBoxResult.OK) return;
         _garden = GardenState.CreateNew(Environment.TickCount);
         _engine = new GardenEngine(_garden, _settings.GraceMinutes * 60.0);
+        ApplyMode();
         GardenChanged();
         _summaryWindow?.Refresh();
     }
@@ -529,13 +550,19 @@ internal sealed class AppController : IDisposable
             _settings.LastWeeklyRecapDate = today;
             _settings.LastDailyRecapDate = today; // the weekly recap covers today too
             SaveSettings();
-            _tray.Notify("Your week in the garden", Stats.WeeklyRecap(_garden, now), ShowSummary);
+            string weekly = Words.Cozy
+                ? $"Your garden grew for {Stats.FormatDuration(Stats.LastDays(_garden, now).Sum(d => d.FocusSeconds))} this week."
+                : Stats.WeeklyRecap(_garden, now);
+            _tray.Notify("Your week in the garden", weekly, ShowSummary);
         }
         else if (_settings.DailyRecap && _settings.LastDailyRecapDate != today)
         {
             _settings.LastDailyRecapDate = today;
             SaveSettings();
-            _tray.Notify("Daily recap", Stats.DailyRecap(_garden, now), ShowSummary);
+            string daily = Words.Cozy
+                ? $"Your garden grew for {Stats.FormatDuration(Stats.ForDay(_garden, now).FocusSeconds)} today."
+                : Stats.DailyRecap(_garden, now);
+            _tray.Notify("Daily recap", daily, ShowSummary);
         }
     }
 
